@@ -2,15 +2,13 @@ body {
   background-color: pink;
   font-family: "Plus Jakarta Sans", sans-serif !important;
   font-optical-sizing: auto;
-  margin-left: auto;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-.container{
-    flex: 1;
-
+.container {
+  flex: 1;
 }
 
 /* navbar */
@@ -18,16 +16,17 @@ body {
   height: 5rem;
   background-color: white;
 }
+
 .fa-compass {
   color: #fe424d;
   font-size: 2rem;
 }
+
 .nav-link {
   color: #222222 !important;
 }
 
-/* footer  */
-
+/* footer */
 .f-info-links a {
   text-decoration: none;
   color: #222222;
@@ -36,6 +35,7 @@ body {
 .f-info-links a:hover {
   text-decoration: underline;
 }
+
 .f-info-socials i {
   font-size: 1.5rem;
   margin-right: 1rem;
@@ -43,7 +43,7 @@ body {
 
 .f-info-links,
 .f-info-socials,
-.f-inf0-brand {
+.f-info-brand {
   width: 100%;
   display: flex;
   align-items: center;
@@ -56,13 +56,12 @@ body {
   background-color: #ebebeb;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  align-items: space-evenly;
+  justify-content: space-evenly;
+  align-items: center;
 }
 
 /* cards */
-
-.card {
+.listing-card {
   border: none !important;
   margin-bottom: 2rem;
 }
@@ -72,53 +71,52 @@ body {
   width: 100% !important;
   object-fit: cover;
 }
+
 .card-body {
   padding: 0 !important;
 }
 
-.card-text p {
+.card-text {
   font-weight: 400 !important;
 }
-.listing-link{
-    text-decoration: none;
+
+.listing-link {
+  text-decoration: none;
 }
 
 /* card effect */
-
-.card-img-overlay{
-    opacity: 0;
-
+.card-img-overlay {
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.card-img-overlay:hover{
-    opacity: 0.2;
-    background-color: white;
-}
-/* new page  */
-.add-btn{
-    background-color: #fe424d !important;
-    border: none !important;
+.card:hover .card-img-overlay {
+  opacity: 0.2;
+  background-color: white;
 }
 
-/* Edit page  */
-
-.edit-btn{
-     background-color: #fe424d !important;
-    border: none !important;
-
+/* new page */
+.add-btn {
+  background-color: #fe424d !important;
+  border: none !important;
 }
 
-/* Show page  */
-.show-img{
-    height: 30vh;
+/* edit page */
+.edit-btn {
+  background-color: #fe424d !important;
+  border: none !important;
 }
 
-.btns{
-    display: flex;
-}
-.show-card{
-    padding-left:0 ;
-    padding-right: 0;
+/* show page */
+.show-img {
+  height: 30vh;
 }
 
+.btns {
+  display: flex;
+}
 
+.show-card {
+  padding-left: 0;
+  padding-right: 0;
+}

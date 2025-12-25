@@ -1,130 +1,99 @@
 const express = require("express");
 const app = express();
+
 const mongoose = require("mongoose");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
+const flash = require("connect-flash");
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
 
-const Listing = require("./models/listing.js");
-const wrapAsync = require("./utils/wrapAsync.js");
+const user = require("./models/user.js");
+const { isLoggedIn } = require("./middleware.js");
+
 const ExpressError = require("./utils/ExpressError.js");
-const {listingSchema}  = require("./schema.js");
 
-// MongoDB Connection
+const reviewRouter = require("./routes/review.js");
+const listingsRouter = require("./routes/listing.js");
+const UserRouter = require("./routes/user.js");
+
+
+// Session configuration
+const sessionOptions = {
+  secret: "keyboard cat",
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+  },
+};
+
+
+// Root route
+app.get("/", (req, res) => {
+  console.dir(req.cookies);
+  res.send("Hi, I am root");
+});
+
+
+// Session & flash middleware
+app.use(session(sessionOptions));
+app.use(flash());
+
+
+// Passport configuration
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new LocalStrategy(user.authenticate()));
+passport.serializeUser(user.serializeUser());
+passport.deserializeUser(user.deserializeUser());
+
+
+// Flash & current user middleware
+app.use((req, res, next) => {
+  res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+  console.log(res.locals.success);
+  res.locals.currUser = req.user;
+  next();
+});
+
+
+// MongoDB connection
 const Mongo_Url = "mongodb://127.0.0.1:27017/wanderLust";
+
 async function main() {
   await mongoose.connect(Mongo_Url);
 }
+
 main()
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// View Engine Setup
+
+// View engine setup
 app.engine("ejs", ejsMate);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Middleware
+
+// Global middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
 
+
 // Routes
-app.get("/", (req, res) => {
-  res.send("Hi, I am root");
-});
+app.use("/listing", listingsRouter);
+app.use("/listing/:id/reviews", reviewRouter);
+app.use("/", UserRouter);
 
-const validateListing = (req,res,next) =>{
-  let {error} = listingSchema.validate(req.body);
-  let errMsg = error.details.map((el) => el.message).join(",");
-    if(error){
-      throw new ExpressError(400,errMsg);
-    }else{
-      next();
-    }
-
-}
-
-// Index route 
-
-app.get(
-  "/listing",
-  wrapAsync(async (req, res) => {
-    const alllisting = await Listing.find({});
-    res.render("listing/index.ejs", { alllisting });
-  })
-);
-
-// New route 
-
-app.get("/listing/new", (req, res) => {
-  res.render("listing/new");
-});
-
-// create route
-
-app.post(
-  "/listing", validateListing,
-  wrapAsync(async (req, res) => {
-    
-    
-    const newListing = new Listing(req.body.listing);
-    await newListing.save();
-    res.redirect("/listing");
-  })
-);
-
-// Show route 
-
-app.get(
-  "/listing/:id",
-  wrapAsync(async (req, res) => {
-    const { id } = req.params;
-    const listing = await Listing.findById(id);
-    if (!listing) throw new ExpressError(404, "Listing Not Found");
-    res.render("listing/show.ejs", { listing });
-  })
-);
-
-// Edit route
-
-app.get(
-  "/listing/:id/edit",
-  wrapAsync(async (req, res) => {
-    const { id } = req.params;
-    const listing = await Listing.findById(id);
-    if (!listing) throw new ExpressError(404, "Listing Not Found");
-    res.render("listing/edit", { listing });
-  })
-);
-
-// Update route
-
-app.put(
-  "/listing/:id", validateListing,
-  wrapAsync(async (req, res) => {
-    const { id } = req.params;
-    await Listing.findByIdAndUpdate(id, { ...req.body.listing });
-    res.redirect(`/listing/${id}`);
-  })
-);
-
-// Delete Route
-
-app.delete(
-  "/listing/:id",
-  wrapAsync(async (req, res) => {
-    const { id } = req.params;
-    await Listing.findByIdAndDelete(id);
-    res.redirect("/listing");
-  })
-);
-
-// Catch-all route for undefined paths
-
-// app.all("*", (req, res,) => {
-//   res.send("page not found")
-// });
 
 // Error-handling middleware
 app.use((err, req, res, next) => {
@@ -133,7 +102,8 @@ app.use((err, req, res, next) => {
   res.status(statusCode).render("error", { err });
 });
 
-// Server Start
+
+// Server start
 app.listen(8080, () => {
   console.log("Server running on http://localhost:8080");
 });
