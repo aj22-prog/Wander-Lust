@@ -10,6 +10,7 @@
         action="/listing"
         novalidate
         class="w-50 needs-validation"
+        enctype="multipart/form-data"
       >
         <div class="mb-3">
           <label for="title" class="form-label">Title</label>
@@ -37,13 +38,14 @@
           </div>
         </div>
 
-        <div class="mb-3">
-          <label for="image" class="form-label">Image Link</label>
+       
+         <div class="mb-3">
+          <label for="image" class="form-label"> Upload Listing Image </label>
           <input
             id="image"
             name="listing[image]"
-            placeholder="Enter your image URL"
-            type="text"
+        
+            type="file"
             class="form-control"
           />
         </div>
