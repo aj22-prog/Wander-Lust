@@ -24,7 +24,11 @@ module.exports.signup = async (req, res, next) => {
         res.redirect("/listing");
       });
     } catch (e) {
-      req.flash("error", e.message);
+      if (e.code === 11000 || (e.name === "UserExistsError")) {
+        req.flash("error", "A user with given email or username already exists. Please login instead!");
+      } else {
+        req.flash("error", e.message);
+      }
       res.redirect("/signup");
     }
   }

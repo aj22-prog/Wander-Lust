@@ -41,9 +41,18 @@ const store =  MongoStore.create({
    
 });
 
-store.on("ERROR" , ()=>{
-  console.log("Error in mongo session store " , err);
+store.on("error", (err) => {
+  console.log("Error in mongo session store ", err);
 });
+
+async function main() {
+  await mongoose.connect(dburl);
+}
+
+main()
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("MongoDB connection error:", err));
+
 
 
 // Session configuration
@@ -60,36 +69,21 @@ const sessionOptions = {
 };
 
 
-// Root route
-// app.get("/", (req, res) => {
-//   console.dir(req.cookies);
-//   res.send("Hi, I am root");
-// });
+// View engine setup
+app.engine("ejs", ejsMate);
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
-
-
-// Session & flash middleware
-app.use(session(sessionOptions));
-app.use(flash());
-
-
-app.use(express.json());
-app.use(cookieParser());
-
+// Global middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use((req, res, next) => {
-  console.log("Current User:", req.user);
-  res.locals.success = req.flash("success");
-  res.locals.error = req.flash("error");
-  res.locals.currUser = req.user;
-  next();
-});
-
+// Session & flash middleware
+app.use(session(sessionOptions));
+app.use(flash());
 
 // Passport configuration
 app.use(passport.initialize());
@@ -99,47 +93,23 @@ passport.use(new LocalStrategy(user.authenticate()));
 passport.serializeUser(user.serializeUser());
 passport.deserializeUser(user.deserializeUser());
 
-
-// Flash & current user middleware
+// Flash & current user middleware (must be after passport.session)
 app.use((req, res, next) => {
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
-  console.log(res.locals.success);
   res.locals.currUser = req.user;
   next();
 });
 
-
-// MongoDB connection
-// const Mongo_Url = "mongodb://127.0.0.1:27017/wanderLust";
-
-
-async function main() {
-  await mongoose.connect(dburl);
-}
-
-main()
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("MongoDB connection error:", err));
-
-
-// View engine setup
-app.engine("ejs", ejsMate);
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-
-
-// Global middleware
-app.use(express.urlencoded({ extended: true }));
-app.use(methodOverride("_method"));
-app.use(express.static(path.join(__dirname, "public")));
-
+// Root route
+app.get("/", (req, res) => {
+  res.redirect("/listing");
+});
 
 // Routes
 app.use("/listing", listingsRouter);
 app.use("/listing/:id/reviews", reviewRouter);
 app.use("/", UserRouter);
-
 
 // Error-handling middleware
 app.use((err, req, res, next) => {
@@ -150,6 +120,8 @@ app.use((err, req, res, next) => {
 
 
 // Server start
-app.listen(8080, () => {
-  console.log("Server running on http://localhost:8080");
+const port = process.env.PORT || 8080;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
+
